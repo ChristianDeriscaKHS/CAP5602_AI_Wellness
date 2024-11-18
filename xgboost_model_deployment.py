@@ -85,7 +85,7 @@ input_data = {
     'demographics_gender': st.selectbox('Gender', ['Male', 'Female']),
     'demographics_age': st.slider('Age', 0, 100, 25),
     'demographics_ethnicity': st.selectbox('Ethnicity', ['Asian', 'Black/African', 'Hispanic/Latino', 'Other', 'White']),
-    'vitals_temperature_mean': st.number_input('Temperature Mean', value=37.0),
+    'vitals_temperature_mean': st.number_input('Temperature Mean', value=38.0),
     'vitals_heartrate_mean': st.number_input('Heart Rate Mean', value=75.0),
     'vitals_resprate_mean': st.number_input('Respiratory Rate Mean', value=18.0),
     'vitals_resprate_median': st.number_input('Respiratory Rate Median', value=18.0),
