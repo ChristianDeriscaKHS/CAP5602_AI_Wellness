@@ -38,14 +38,11 @@ X = data[[
     'demographics_gender', 'demographics_age', 'demographics_ethnicity_asian',
     'demographics_ethnicity_black/african', 'demographics_ethnicity_hispanic/latino',
     'demographics_ethnicity_other', 'demographics_ethnicity_white', 
-    'vitals_temperature_mean', 'vitals_temperature_std', 'vitals_heartrate_mean',
-    'vitals_heartrate_std', 'vitals_resprate_mean', 'vitals_resprate_median',
-    'vitals_o2sat_mean', 'vitals_o2sat_std', 'vitals_sbp_mean', 'vitals_sbp_std',
-    'vitals_dbp_mean', 'vitals_dbp_std', 'labvalues_alanine_aminotransferase_(alt)_mean', 
-    'labvalues_alanine_aminotransferase_(alt)_std', 'labvalues_asparate_aminotransferase_(ast)_mean',
-    'labvalues_asparate_aminotransferase_(ast)_std', 'labvalues_sodium_mean',
-    'labvalues_sodium_std', 'labvalues_potassium_mean', 'labvalues_potassium_std',
-    'labvalues_c-reactive_protein_mean', 'labvalues_c-reactive_protein_std'
+    'vitals_temperature_mean', 'vitals_heartrate_mean', 'vitals_resprate_mean',
+    'vitals_resprate_median', 'vitals_o2sat_mean', 'vitals_sbp_mean',
+    'vitals_dbp_mean', 'labvalues_alanine_aminotransferase_(alt)_mean',
+    'labvalues_asparate_aminotransferase_(ast)_mean', 'labvalues_sodium_mean',
+    'labvalues_potassium_mean', 'labvalues_c-reactive_protein_mean'
 ]]
 
 # Set target variable as diagnoses_a41 and diagnoses_a419 columns combined
@@ -121,7 +118,7 @@ print(f"Best parameters: {grid_search.best_params_}")
 
 # **10. Save and Deploy the Model**
 # Save the trained model and create functions for user input and prediction.
-joblib.dump(model, 'xgboost_model.pkl2')
+joblib.dump(model, 'xgboost_model.pkl')
 
 # Define preprocessing function
 def preprocess_input(input_data):
@@ -135,7 +132,7 @@ def preprocess_input(input_data):
 # Load and predict
 def predict_diagnosis(input_data):
     processed_data = preprocess_input(input_data)  # Define preprocessing steps
-    loaded_model = joblib.load('xgboost_model.pkl2')
+    loaded_model = joblib.load('xgboost_model.pk2')
     predictions = loaded_model.predict(processed_data)
     decoded_predictions = ['No Sepsis' if pred == 0 else 'Sepsis' for pred in predictions]
     return decoded_predictions

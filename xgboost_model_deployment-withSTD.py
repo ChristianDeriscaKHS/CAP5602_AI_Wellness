@@ -12,13 +12,17 @@ model = joblib.load('xgboost_model.pkl')
 def preprocess_input(input_data):
     # Ensure the input data is a DataFrame with the same features as training
     columns = [
-         'demographics_gender', 'demographics_age', 'demographics_ethnicity_asian',
-    'demographics_ethnicity_black/african', 'demographics_ethnicity_hispanic/latino',
-    'demographics_ethnicity_other', 'demographics_ethnicity_white', 
-    'vitals_temperature_mean', 'vitals_heartrate_mean', 'vitals_resprate_mean',
-    'vitals_resprate_median', 'vitals_o2sat_mean', 'vitals_sbp_mean',
-    'vitals_dbp_mean', 'labvalues_alanine_aminotransferase_(alt)_mean',
-    'labvalues_asparate_aminotransferase_(ast)_mean', 'labvalues_sod'
+        'demographics_gender', 'demographics_age', 'demographics_ethnicity_asian',
+        'demographics_ethnicity_black/african', 'demographics_ethnicity_hispanic/latino',
+        'demographics_ethnicity_other', 'demographics_ethnicity_white', 
+        'vitals_temperature_mean', 'vitals_temperature_std', 'vitals_heartrate_mean',
+        'vitals_heartrate_std', 'vitals_resprate_mean', 'vitals_resprate_median',
+        'vitals_o2sat_mean', 'vitals_o2sat_std', 'vitals_sbp_mean', 'vitals_sbp_std',
+        'vitals_dbp_mean', 'vitals_dbp_std', 'labvalues_alanine_aminotransferase_(alt)_mean', 
+        'labvalues_alanine_aminotransferase_(alt)_std', 'labvalues_asparate_aminotransferase_(ast)_mean',
+        'labvalues_asparate_aminotransferase_(ast)_std', 'labvalues_sodium_mean',
+        'labvalues_sodium_std', 'labvalues_potassium_mean', 'labvalues_potassium_std',
+        'labvalues_c-reactive_protein_mean', 'labvalues_c-reactive_protein_std'
     ]
     
     input_df = pd.DataFrame([input_data], columns=columns)
@@ -85,17 +89,27 @@ input_data = {
     'demographics_age': st.slider('Age', 0, 100, 25),
     'demographics_ethnicity': st.selectbox('Ethnicity', ['Asian', 'Black/African', 'Hispanic/Latino', 'Other', 'White']),
     'vitals_temperature_mean': st.number_input('Temperature Mean', value=37.0),
+    'vitals_temperature_std': st.number_input('Temperature Std', value=0.5),
     'vitals_heartrate_mean': st.number_input('Heart Rate Mean', value=75.0),
+    'vitals_heartrate_std': st.number_input('Heart Rate Std', value=5.0),
     'vitals_resprate_mean': st.number_input('Respiratory Rate Mean', value=18.0),
     'vitals_resprate_median': st.number_input('Respiratory Rate Median', value=18.0),
     'vitals_o2sat_mean': st.number_input('O2 Saturation Mean', value=98.0),
+    'vitals_o2sat_std': st.number_input('O2 Saturation Std', value=1.0),
     'vitals_sbp_mean': st.number_input('Systolic BP Mean', value=120.0),
+    'vitals_sbp_std': st.number_input('Systolic BP Std', value=10.0),
     'vitals_dbp_mean': st.number_input('Diastolic BP Mean', value=80.0),
+    'vitals_dbp_std': st.number_input('Diastolic BP Std', value=5.0),
     'labvalues_alanine_aminotransferase_(alt)_mean': st.number_input('ALT Mean', value=30.0),
+    'labvalues_alanine_aminotransferase_(alt)_std': st.number_input('ALT Std', value=5.0),
     'labvalues_asparate_aminotransferase_(ast)_mean': st.number_input('AST Mean', value=30.0),
+    'labvalues_asparate_aminotransferase_(ast)_std': st.number_input('AST Std', value=5.0),
     'labvalues_sodium_mean': st.number_input('Sodium Mean', value=140.0),
+    'labvalues_sodium_std': st.number_input('Sodium Std', value=3.0),
     'labvalues_potassium_mean': st.number_input('Potassium Mean', value=4.0),
+    'labvalues_potassium_std': st.number_input('Potassium Std', value=0.5),
     'labvalues_c-reactive_protein_mean': st.number_input('C-Reactive Protein Mean', value=5.0),
+    'labvalues_c-reactive_protein_std': st.number_input('C-Reactive Protein Std', value=1.0)
 }
 
 # **5. Make Prediction**
