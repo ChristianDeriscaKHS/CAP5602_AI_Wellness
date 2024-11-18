@@ -120,7 +120,6 @@ if st.button('Predict Sepsis'):
 
     # Plot SHAP values summary
     st.write("### Explanation of Prediction")
-    shap.initjs()
     fig, ax = plt.subplots()
     shap.summary_plot(shap_values, input_df, plot_type="bar", show=False)
     st.pyplot(fig)
