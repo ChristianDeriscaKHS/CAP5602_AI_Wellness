@@ -118,10 +118,11 @@ if st.button('Predict Sepsis'):
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(input_df)
 
-    # Plot SHAP values for the prediction
+    # Plot SHAP values summary
     st.write("### Explanation of Prediction")
+    shap.initjs()
     fig, ax = plt.subplots()
-    shap.waterfall_plot(shap.Explanation(values=shap_values[0], base_values=explainer.expected_value, data=input_df.iloc[0]), ax=ax)
+    shap.summary_plot(shap_values, input_df, plot_type="bar", show=False)
     st.pyplot(fig)
 
 # **7. Reference Ranges Table**
