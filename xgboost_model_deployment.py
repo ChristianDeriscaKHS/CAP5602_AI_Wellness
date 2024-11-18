@@ -12,13 +12,14 @@ model = joblib.load('xgboost_model.pkl')
 def preprocess_input(input_data):
     # Ensure the input data is a DataFrame with the same features as training
     columns = [
-         'demographics_gender', 'demographics_age', 'demographics_ethnicity_asian',
+    'demographics_gender', 'demographics_age', 'demographics_ethnicity_asian',
     'demographics_ethnicity_black/african', 'demographics_ethnicity_hispanic/latino',
     'demographics_ethnicity_other', 'demographics_ethnicity_white', 
     'vitals_temperature_mean', 'vitals_heartrate_mean', 'vitals_resprate_mean',
     'vitals_resprate_median', 'vitals_o2sat_mean', 'vitals_sbp_mean',
     'vitals_dbp_mean', 'labvalues_alanine_aminotransferase_(alt)_mean',
-    'labvalues_asparate_aminotransferase_(ast)_mean', 'labvalues_sod'
+    'labvalues_asparate_aminotransferase_(ast)_mean', 'labvalues_sodium_mean',
+    'labvalues_potassium_mean', 'labvalues_c-reactive_protein_mean'
     ]
     
     input_df = pd.DataFrame([input_data], columns=columns)
