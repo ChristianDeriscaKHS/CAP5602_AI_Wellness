@@ -14,6 +14,8 @@ from imblearn.over_sampling import SMOTE
 import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
+import shap
+
 
 # **2. Set Up Logging**
 # Configure logging to debug the mapping issues
@@ -33,7 +35,7 @@ data[numeric_cols] = data[numeric_cols].fillna(data[numeric_cols].mean())
 
 # **4. Feature and Target Selection**
 # Define the features (`X`) and target variable (`y`) based on the dataset.
-# Select features
+# Select features   
 X = data[[
     'demographics_gender', 'demographics_age', 'demographics_ethnicity_asian',
     'demographics_ethnicity_black/african', 'demographics_ethnicity_hispanic/latino',

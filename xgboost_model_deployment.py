@@ -2,6 +2,9 @@
 import joblib
 import pandas as pd
 import streamlit as st
+import shap
+import matplotlib.pyplot as plt
+import xgboost
 
 # **1. Load the Model**
 # Load the trained XGBoost model
@@ -110,7 +113,18 @@ if st.button('Predict Sepsis'):
     else:
         st.write('Prediction: No Sepsis Suspected')
 
-# **6. Reference Ranges Table**
+    # **6. Explain Prediction with SHAP**
+    # Use SHAP to explain the model's predictions
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(input_df)
+
+    # Plot SHAP values for the prediction
+    st.write("### Explanation of Prediction")
+    fig, ax = plt.subplots()
+    shap.waterfall_plot(shap.Explanation(values=shap_values[0], base_values=explainer.expected_value, data=input_df.iloc[0]), ax=ax)
+    st.pyplot(fig)
+
+# **7. Reference Ranges Table**
 # Button to display reference ranges
 if st.checkbox('Show Reference Ranges'):
     reference_data = {
@@ -134,7 +148,7 @@ if st.checkbox('Show Reference Ranges'):
     st.write("### Reference Ranges for Input Parameters")
     st.table(reference_df)
 
-# **7. Deployment Notes**
+# **8. Deployment Notes**
 # - Streamlit provides an easy way to create a GUI for the model.
 # - To run the Streamlit app, use the command: `streamlit run xgboost_model_deployment.py`.
 # - Consider using Docker to containerize the Streamlit app and deploy it on cloud platforms.
