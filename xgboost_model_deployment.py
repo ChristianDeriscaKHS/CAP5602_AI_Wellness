@@ -107,22 +107,24 @@ input_data = {
 if st.button('Predict Sepsis'):
     input_df = preprocess_input(input_data)
     prediction = model.predict(input_df)
+    
     if prediction[0] == 1:
         st.write('Prediction: Sepsis suspected')
         st.markdown(sepsis_treatment_recommendations())  # Display treatment recommendations
+
+        # **6. Explain Prediction with SHAP**
+        # Use SHAP to explain the model's predictions
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(input_df)
+
+        # Plot SHAP values summary
+        st.write("### Explanation of Prediction")
+        fig, ax = plt.subplots()
+        shap.summary_plot(shap_values, input_df, plot_type="bar", show=False)
+        st.pyplot(fig)
+        
     else:
         st.write('Prediction: No Sepsis Suspected')
-
-    # **6. Explain Prediction with SHAP**
-    # Use SHAP to explain the model's predictions
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(input_df)
-
-    # Plot SHAP values summary
-    st.write("### Explanation of Prediction")
-    fig, ax = plt.subplots()
-    shap.summary_plot(shap_values, input_df, plot_type="bar", show=False)
-    st.pyplot(fig)
 
 # **7. Reference Ranges Table**
 # Button to display reference ranges
