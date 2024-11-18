@@ -112,7 +112,7 @@ if st.button('Predict Sepsis'):
 
 # **6. Reference Ranges Table**
 # Button to display reference ranges
-if st.button('Show Reference Ranges'):
+if st.checkbox('Show Reference Ranges'):
     reference_data = {
         "Parameter": [
             'Gender', 'Age', 'Ethnicity', 
