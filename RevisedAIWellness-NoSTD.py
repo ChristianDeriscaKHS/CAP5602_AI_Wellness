@@ -25,6 +25,42 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 # Load the dataset and perform initial exploration to understand its structure and quality.
 data = pd.read_csv('Data/mds_ed.csv', low_memory=False)
 
+data['ethnicity'] = data[['demographics_ethnicity_asian', 
+                          'demographics_ethnicity_black/african', 
+                          'demographics_ethnicity_hispanic/latino', 
+                          'demographics_ethnicity_other', 
+                          'demographics_ethnicity_white']].idxmax(axis=1)
+
+# Replace ethnicity column names with user-friendly labels
+ethnicity_mapping = {
+    'demographics_ethnicity_asian': 'Asian',
+    'demographics_ethnicity_black/african': 'Black/African American',
+    'demographics_ethnicity_hispanic/latino': 'Hispanic/Latino',
+    'demographics_ethnicity_other': 'Other',
+    'demographics_ethnicity_white': 'White'
+}
+data['ethnicity'] = data['ethnicity'].replace(ethnicity_mapping)
+
+# Calculate the distribution of each ethnicity in the dataset
+ethnicity_counts = data['ethnicity'].value_counts()
+ethnicity_proportions = data['ethnicity'].value_counts(normalize=True) * 100
+
+print("Ethnicity Distribution Counts:")
+print(ethnicity_counts)
+print("\nEthnicity Distribution Proportions (%):")
+print(ethnicity_proportions)
+
+# Optional: Plot the ethnicity distribution
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(10, 6))
+ethnicity_counts.plot(kind='bar', color='skyblue')
+plt.xlabel('Ethnicity')
+plt.ylabel('Count')
+plt.title('Distribution of Ethnicities in the Dataset')
+plt.xticks(rotation=45)
+plt.show()
+
 # Basic data exploration
 print(data.head())  # Check the first few rows
 print(data.info())  # Check data types and missing values
