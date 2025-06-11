@@ -1,5 +1,4 @@
-# **1. Imports**
-# Import necessary libraries for data handling, preprocessing, model training, evaluation, and saving the model.
+# Imports
 import pandas as pd
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import LabelEncoder
@@ -15,27 +14,23 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
 import shap
+from sklearn.utils import resample
 
-
-# **2. Set Up Logging**
-# Configure logging to debug the mapping issues
+#2. Set Up Logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# **3. Load and Explore Data**
-# Load the dataset and perform initial exploration to understand its structure and quality.
+#3. Load and Explore Data
 data = pd.read_csv('Data/mds_ed.csv', low_memory=False)
 
 # Basic data exploration
-print(data.head())  # Check the first few rows
-print(data.info())  # Check data types and missing values
+print(data.head())
+print(data.info())
 
 # Fill missing values for numeric columns with the mean
 numeric_cols = data.select_dtypes(include=['float64', 'int64']).columns
 data[numeric_cols] = data[numeric_cols].fillna(data[numeric_cols].mean())
 
-# **4. Feature and Target Selection**
-# Define the features (`X`) and target variable (`y`) based on the dataset.
-# Select features   
+#Feature and Target Selection
 X = data[[
     'demographics_gender', 'demographics_age', 'demographics_ethnicity_asian',
     'demographics_ethnicity_black/african', 'demographics_ethnicity_hispanic/latino',
@@ -48,25 +43,83 @@ X = data[[
 ]]
 
 # Set target variable as diagnoses_a41 and diagnoses_a419 columns combined
-y = data[['diagnoses_a41', 'diagnoses_a419']].max(axis=1)  # Use max to indicate presence of sepsis (1 if either column is 1)
+y = data[['diagnoses_a41', 'diagnoses_a419']].max(axis=1)
 
-# **5. Handle Class Imbalance with SMOTE**
-# Apply SMOTE to handle class imbalance if more than one class is present
-if len(np.unique(y)) > 1:
-    smote = SMOTE(random_state=42)
-    X_resampled, y_resampled = smote.fit_resample(X, y)
-else:
-    X_resampled, y_resampled = X, y
+#Stratified Oversampling by Ethnicity
+ethnicity_columns = [
+    'demographics_ethnicity_asian', 'demographics_ethnicity_black/african',
+    'demographics_ethnicity_hispanic/latino', 'demographics_ethnicity_other',
+    'demographics_ethnicity_white'
+]
 
-# **6. Train-Test Split**
-# Split the data into training and test sets using stratified sampling to preserve class distribution.
+# List to store resampled data
+X_resampled_list = []
+y_resampled_list = []
+
+# Loop through each ethnicity column and apply SMOTE or resampling within each group
+for ethnicity_col in ethnicity_columns:
+    # Filter the data for the current ethnicity group
+    ethnicity_group = X[X[ethnicity_col] == 1]
+    y_group = y[ethnicity_group.index]
+
+    # Resample to ensure similar class distribution (Sepsis vs No Sepsis) within each group
+    if len(np.unique(y_group)) > 1:
+        sepsis_group = ethnicity_group[y_group == 1]
+        non_sepsis_group = ethnicity_group[y_group == 0]
+
+        if len(sepsis_group) < len(non_sepsis_group):
+            sepsis_group_resampled = resample(sepsis_group,
+                                              replace=True,
+                                              n_samples=len(non_sepsis_group),
+                                              random_state=42)
+            X_group_resampled = pd.concat([sepsis_group_resampled, non_sepsis_group])
+            y_group_resampled = pd.concat([y.loc[sepsis_group_resampled.index], y.loc[non_sepsis_group.index]])
+        else:
+            non_sepsis_group_resampled = resample(non_sepsis_group,
+                                                  replace=True,
+                                                  n_samples=len(sepsis_group),
+                                                  random_state=42)
+            X_group_resampled = pd.concat([sepsis_group, non_sepsis_group_resampled])
+            y_group_resampled = pd.concat([y.loc[sepsis_group.index], y.loc[non_sepsis_group_resampled.index]])
+    else:
+        X_group_resampled, y_group_resampled = ethnicity_group, y_group
+
+    # Append resampled data to the list
+    X_resampled_list.append(X_group_resampled)
+    y_resampled_list.append(y_group_resampled)
+
+# Combine all resampled data
+X_resampled = pd.concat(X_resampled_list, axis=0)
+y_resampled = pd.concat(y_resampled_list, axis=0)
+
+#Visualize Distribution After Stratified Oversampling
+plt.figure(figsize=(14, 6))
+
+#Original Ethnicity Distribution
+plt.subplot(1, 2, 1)
+original_counts = X[ethnicity_columns].sum()
+original_counts.plot(kind='bar', color='skyblue')
+plt.title('Original Ethnicity Distribution')
+plt.ylabel('Count')
+plt.xticks(rotation=45)
+
+#Resampled Ethnicity Distribution
+plt.subplot(1, 2, 2)
+resampled_counts = X_resampled[ethnicity_columns].sum()
+resampled_counts.plot(kind='bar', color='salmon')
+plt.title('Resampled Ethnicity Distribution After Stratified Oversampling')
+plt.ylabel('Count')
+plt.xticks(rotation=45)
+
+plt.tight_layout()
+plt.show()
+
+#Train-Test Split
 X_train, X_test, y_train, y_test = train_test_split(
     X_resampled, y_resampled, test_size=0.2, stratify=y_resampled, random_state=42
 )
 
-# **7. Model Training with Cross-Validation**
-# Train the XGBoost classifier with basic or tuned hyperparameters.
-# Initialize the model
+#Model Training with Cross-Validation
 model = xgb.XGBClassifier(
     max_depth=3,
     learning_rate=0.1,
@@ -74,11 +127,10 @@ model = xgb.XGBClassifier(
     subsample=0.8,
     eval_metric='mlogloss',
     random_state=42,
-    tree_method= 'hist',  # Use GPU for training
-    device= 'cpu'
+    tree_method='hist',
+    device='cpu'
 )
 
-# Perform cross-validation to check model performance
 cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring='accuracy')
 print(f'Cross-validation accuracy scores: {cv_scores}')
 print(f'Mean cross-validation accuracy: {np.mean(cv_scores) * 100:.2f}%')
@@ -86,20 +138,14 @@ print(f'Mean cross-validation accuracy: {np.mean(cv_scores) * 100:.2f}%')
 # Train the model on the full training set
 model.fit(X_train, y_train)
 
-# **8. Model Evaluation**
-# Evaluate the model using accuracy, classification report, and confusion matrix.
-# Make predictions
+#Model Evaluation
 y_pred = model.predict(X_test)
 
-# Evaluate accuracy
 accuracy = accuracy_score(y_test, y_pred)
 print(f'Model accuracy: {accuracy * 100:.2f}%')
-
-# Detailed evaluation
 print(classification_report(y_test, y_pred, target_names=['No Sepsis', 'Sepsis']))
 
-# **9. Hyperparameter Tuning (Optional)**
-# Improve the model’s performance by fine-tuning its hyperparameters.
+#Hyperparameter Tuning
 param_grid = {
     'max_depth': [3, 5, 7],
     'learning_rate': [0.01, 0.1, 0.2],
@@ -118,36 +164,27 @@ grid_search = GridSearchCV(
 grid_search.fit(X_train, y_train)
 print(f"Best parameters: {grid_search.best_params_}")
 
-# **10. Save and Deploy the Model**
-# Save the trained model and create functions for user input and prediction.
-joblib.dump(model, 'xgboost_model.pkl')
+#Save and Deploy the Model
+joblib.dump(model, 'xgboost_model.pkl3')
 
-# Define preprocessing function
 def preprocess_input(input_data):
-    # Example preprocessing steps (should match the training preprocessing)
-    # Ensure the input data is a DataFrame with the same features as training
     input_df = pd.DataFrame([input_data], columns=X.columns)
-    # Additional preprocessing steps like scaling or encoding if needed
-    input_df[numeric_cols] = input_df[numeric_cols].fillna(input_df[numeric_cols].mean())  # Fill any missing values for numeric columns
+    input_df[numeric_cols] = input_df[numeric_cols].fillna(input_df[numeric_cols].mean())
     return input_df
 
-# Load and predict
 def predict_diagnosis(input_data):
-    processed_data = preprocess_input(input_data)  # Define preprocessing steps
-    loaded_model = joblib.load('xgboost_model.pk2')
+    processed_data = preprocess_input(input_data)
+    loaded_model = joblib.load('xgboost_model.pkl3')
     predictions = loaded_model.predict(processed_data)
     decoded_predictions = ['No Sepsis' if pred == 0 else 'Sepsis' for pred in predictions]
     return decoded_predictions
 
-# **11. Interpretability (Optional)**
-# Use SHAP to interpret the model’s predictions.
-import shap
-
+#Interpretability
 explainer = shap.TreeExplainer(model)
 shap_values = explainer.shap_values(X_test)
 shap.summary_plot(shap_values, X_test)
 
-# **12. Final Notes**
+#Final Notes
 # - Ensure robust preprocessing for missing data, scaling, or one-hot encoding if required.
 # - Validate the pipeline on a separate validation set if your dataset is large.
 # - Deploy the model with Flask, FastAPI, or Streamlit for user interaction.
